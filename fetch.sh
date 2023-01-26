@@ -82,10 +82,18 @@ curl -s https://altinncdn.no/orgs/altinn-orgs.json | jq '.orgs | keys[]' | sed '
       FULL_KEY="$ORG-$ENV_KEY-$APP"
       TARGET_FOLDER="$TARGET/$FULL_KEY"
 
-      if test -e "$TARGET_FOLDER"; then
-        echo " * Updating $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
-        cd "$TARGET_FOLDER"
-        git checkout -q "$COMMIT"
+      if test -e "$TARGET_FOLDER/fetch-failed.txt"; then
+        echo " * Unavailable: $ORG-$ENV_KEY-$APP"
+      elif test -e "$TARGET_FOLDER"; then
+        CURRENT_HEAD=$(cat "$TARGET_FOLDER/.git/HEAD")
+        if [[ "$CURRENT_HEAD" == "$COMMIT" ]]; then
+          echo " * Up-to-date: $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
+        else
+          echo " * Updating $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
+          cd "$TARGET_FOLDER"
+          git pull -q origin master
+          git checkout -q "$COMMIT"
+        fi
       else
         echo " * Cloning $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
         set +e
@@ -94,6 +102,9 @@ curl -s https://altinncdn.no/orgs/altinn-orgs.json | jq '.orgs | keys[]' | sed '
         if test -e "$TARGET_FOLDER"; then
           cd "$TARGET_FOLDER"
           git checkout -q "$COMMIT"
+        else
+          mkdir -p "$TARGET_FOLDER"
+          echo "Fetching this repo from $REPO failed. This file was placed here to prevent the script from trying again and again" > "$TARGET_FOLDER/fetch-failed.txt"
         fi
       fi
     done
