@@ -33,8 +33,8 @@ function get_release() {
   local ORG="$1"
   local APP="$2"
   local VERSION="$3"
-  local URL_PROD="https://altinn.studio/designer/api/v1/$ORG/$APP/releases"
-  local URL_DEV="https://dev.altinn.studio/designer/api/v1/$ORG/$APP/releases"
+  local URL_PROD="https://altinn.studio/designer/api/$ORG/$APP/releases"
+  local URL_DEV="https://dev.altinn.studio/designer/api/$ORG/$APP/releases"
   local CACHE_PROD="$TARGET/.cache/releases-prod-$ORG-$APP.json"
   local CACHE_DEV="$TARGET/.cache/releases-dev-$ORG-$APP.json"
   local FOUND
