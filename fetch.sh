@@ -59,9 +59,11 @@ function download_file_if_old {
   local DESCRIPTION="$3"
 
   if test -e "$FILE_PATH"; then
-    FILE_AGE=$(($(date +%s) - $(stat -c '%Y' "$FILE_PATH")))
-    # use this for mac
-    # FILE_AGE=$(($(date +%s) - $(stat -t %s -f %m  "$FILE_PATH")))
+    if [[ "$(uname)" == "Darwin" ]]; then
+      FILE_AGE=$(($(date +%s) - $(stat -t %s -f %m "$FILE_PATH")))
+    else
+      FILE_AGE=$(($(date +%s) - $(stat -c '%Y' "$FILE_PATH")))
+    fi
     if test "$FILE_AGE" -gt "3600"; then
       >&2 echo " * Loading $DESCRIPTION"
       curl -s "$URL" > "$FILE_PATH"
