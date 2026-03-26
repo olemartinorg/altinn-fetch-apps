@@ -95,8 +95,21 @@ curl -s https://altinncdn.no/orgs/altinn-orgs.json | jq '.orgs | keys[]' | sed '
         else
           echo " * Updating $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
           cd "$TARGET_FOLDER"
-          git pull -q origin master
-          git checkout -q "$COMMIT"
+          git fetch -q origin master
+          set +e
+          GIT_OUTPUT=$(git checkout -q "$COMMIT" 2>&1)
+          GIT_STATUS=$?
+          set -e
+          if echo "$GIT_OUTPUT" | grep -q "fatal: unable to read tree"; then
+            echo " * Unable to read tree for $COMMIT in $ORG-$ENV_KEY-$APP, falling back to latest default branch"
+            FALLBACK_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+            git fetch -q origin
+            git checkout -q "$FALLBACK_BRANCH"
+            git reset -q --hard "origin/$FALLBACK_BRANCH"
+          elif [[ $GIT_STATUS -ne 0 ]]; then
+            echo "$GIT_OUTPUT" >&2
+            exit $GIT_STATUS
+          fi
         fi
       else
         echo " * Cloning $ORG-$ENV_KEY-$APP = $VERSION ($COMMIT)"
