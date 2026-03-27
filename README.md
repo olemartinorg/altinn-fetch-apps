@@ -15,7 +15,7 @@ mkdir all-apps
 ## Kjøre verifikasjoner
 Nå har du alle filene til alle appene liggende på disk, og kan bruke vscode eller andre søkeverktøy til å finne bruk av apier, eller det du måtte ønske å verifisere
 
-### Bruk testkode fra `app-frontentd-react` 
+### Bruk testkode fra `app-frontend-react` 
 I `app-frontend-react` ligger det eksempel kode som sjekker status for ulike ting i alle apper.
 I app-frontend-react, kopier template.env -> .env (om du ikke har gjort det fra før av) og sett ALTINN_ALL_APPS_DIR til en absolutt sti til mappa du oppretta der alle appene ligger (eg: `all-apps`).
 Kj￸r tester som bruker dette konseptet, f.eks. src/utils/layout/schema.test.ts. Skal man sjekke f.eks. hvilke apper som har satt en gitt parameter på Input/TextArea-komponentene sine (som ble diskutert her, pleier jeg å utvide testen med litt egen kode:
