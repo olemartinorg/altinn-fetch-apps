@@ -118,7 +118,20 @@ curl -s https://altinncdn.no/orgs/altinn-orgs.json | jq '.orgs | keys[]' | sed '
         set -e
         if test -e "$TARGET_FOLDER"; then
           cd "$TARGET_FOLDER"
-          git checkout -q "$COMMIT"
+          set +e
+          GIT_OUTPUT=$(git checkout -q "$COMMIT" 2>&1)
+          GIT_STATUS=$?
+          set -e
+          if echo "$GIT_OUTPUT" | grep -q "fatal: unable to read tree"; then
+            echo " * Unable to read tree for $COMMIT in $ORG-$ENV_KEY-$APP, falling back to latest default branch"
+            FALLBACK_BRANCH=$(git remote show origin | grep 'HEAD branch' | awk '{print $NF}')
+            git fetch -q origin
+            git checkout -q "$FALLBACK_BRANCH"
+            git reset -q --hard "origin/$FALLBACK_BRANCH"
+          elif [[ $GIT_STATUS -ne 0 ]]; then
+            echo "$GIT_OUTPUT" >&2
+            exit $GIT_STATUS
+          fi
         else
           mkdir -p "$TARGET_FOLDER"
           echo "Fetching this repo from $REPO failed. This file was placed here to prevent the script from trying again and again" > "$TARGET_FOLDER/fetch-failed.txt"
